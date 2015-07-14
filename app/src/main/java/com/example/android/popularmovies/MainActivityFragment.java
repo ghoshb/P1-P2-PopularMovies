@@ -1,7 +1,10 @@
 package com.example.android.popularmovies;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -30,11 +34,10 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment {
 
-    private final String SORT_VALUE_POPULARITY = "popularity.desc";
-
     private MovieGridViewAdapter movieGridViewAdapter = null;
     private static int page = 1;
     private boolean fetchMoviesTaskRunning = false;
+    private String lastSortOrder = null;
 
     public MainActivityFragment() {
     }
@@ -58,25 +61,64 @@ public class MainActivityFragment extends Fragment {
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if (firstVisibleItem == 0) { return; } // Seeing some jitter - don't know why
+                if (firstVisibleItem == 0) {
+                    return;
+                } // Seeing some jitter - don't know why
                 if ((firstVisibleItem + visibleItemCount) == totalItemCount) {
                     populateGrid();
                 }
             }
         });
 
-        populateGrid();
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Movie movie = movieGridViewAdapter.getItem(position);
+
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+
+                intent.putExtra(Movie.TMDB_RESULTS_OVERVIEW, movie.getOverview());
+                intent.putExtra(Movie.TMDB_RESULTS_RELEASE_DATE, movie.getRelease_date());
+                intent.putExtra(Movie.TMDB_RESULTS_POSTER_PATH, movie.getPoster_path());
+                intent.putExtra(Movie.TMDB_RESULTS_TITLE, movie.getTitle());
+                intent.putExtra(Movie.TMDB_RESULTS_VOTE_AVERAGE, movie.getVote_average());
+
+                startActivity(intent);
+
+            }
+        });
 
         return view;
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        populateGrid();
+    }
+
 
     private void populateGrid() {
 
         if (movieGridViewAdapter == null ) { return; }
         if (fetchMoviesTaskRunning) { return; }
+
+        SharedPreferences sharedPreferences = PreferenceManager
+                .getDefaultSharedPreferences(getActivity().getApplicationContext());
+        String sortOrder = sharedPreferences
+                .getString(getResources().getString(R.string.pref_key), getResources().getString(R.string.pref_keyPopularity));
+
+        if (lastSortOrder == null) {
+            lastSortOrder = new String(sortOrder);
+        } else if (!(lastSortOrder.contentEquals(sortOrder))) {
+            movieGridViewAdapter.clear();
+            lastSortOrder = sortOrder;
+        }
+
         if (movieGridViewAdapter.getCount() == 0) { page = 1; }
 
-        String[] taskParams = new String[] { SORT_VALUE_POPULARITY, Integer.toString(page++) };
+        String[] taskParams = new String[] { sortOrder, Integer.toString(page++) };
         fetchMoviesTaskRunning = true;
         new FetchMoviesTask().execute(taskParams);
 
