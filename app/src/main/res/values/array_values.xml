@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_listKeys">
+        <item>@string/pref_keyPopularity</item>
+        <item>@string/pref_keyRating</item>
+    </string-array>
+    <string-array name="pref_listValues">
+        <item>@string/pref_valuePopularity</item>
+        <item>@string/pref_valueRating</item>
+    </string-array>
+</resources>

@@ -8,6 +8,13 @@ import org.json.JSONObject;
  */
 public class Movie {
 
+    public static final String TMDB_RESULTS_ID = "id";
+    public static final String TMDB_RESULTS_OVERVIEW = "overview";
+    public static final String TMDB_RESULTS_RELEASE_DATE = "release_date";
+    public static final String TMDB_RESULTS_POSTER_PATH = "poster_path";
+    public static final String TMDB_RESULTS_TITLE = "title";
+    public static final String TMDB_RESULTS_VOTE_AVERAGE = "vote_average";
+
     private String id;
     private String overview;
     private String release_date;
@@ -16,13 +23,6 @@ public class Movie {
     private String vote_average;
 
     public Movie(JSONObject movie) throws JSONException {
-
-        final String TMDB_RESULTS_ID = "id";
-        final String TMDB_RESULTS_OVERVIEW = "overview";
-        final String TMDB_RESULTS_RELEASE_DATE = "release_date";
-        final String TMDB_RESULTS_POSTER_PATH = "poster_path";
-        final String TMDB_RESULTS_TITLE = "title";
-        final String TMDB_RESULTS_VOTE_AVERAGE = "vote_average";
 
         this.id = movie.getString(TMDB_RESULTS_ID);
         this.overview = movie.getString(TMDB_RESULTS_OVERVIEW);
