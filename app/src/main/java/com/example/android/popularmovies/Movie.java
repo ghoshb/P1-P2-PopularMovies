@@ -1,13 +1,17 @@
 package com.example.android.popularmovies;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * Created by Biswajit Ghosh on 7/13/2015.
  */
-public class Movie {
+public class Movie implements Parcelable {
 
+    public static final String TAG = Movie.class.getSimpleName();
     public static final String TMDB_RESULTS_ID = "id";
     public static final String TMDB_RESULTS_OVERVIEW = "overview";
     public static final String TMDB_RESULTS_RELEASE_DATE = "release_date";
@@ -39,5 +43,39 @@ public class Movie {
     public String getPoster_path() { return poster_path; }
     public String getTitle() { return title; }
     public String getVote_average() { return vote_average; }
+
+    protected Movie(Parcel in) {
+        this.id = in.readString();
+        this.overview = in.readString();
+        this.release_date = in.readString();
+        this.poster_path = in.readString();
+        this.title = in.readString();
+        this.vote_average = in.readString();
+
+    }
+
+    @Override
+    public int describeContents() {return 0;}
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.id);
+        dest.writeString(this.overview);
+        dest.writeString(this.release_date);
+        dest.writeString(this.poster_path);
+        dest.writeString(this.title);
+        dest.writeString(this.vote_average);
+    }
+
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+
+        public Movie createFromParcel(Parcel source) {
+            return new Movie(source);
+        }
+
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 
 }

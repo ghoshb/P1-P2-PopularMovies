@@ -23,7 +23,7 @@ public class DetailActivity extends ActionBarActivity {
         setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new DetailFragment())
+                    .add(R.id.container_detail, new DetailFragment())
                     .commit();
         }
     }
@@ -62,22 +62,23 @@ public class DetailActivity extends ActionBarActivity {
             View view = inflater.inflate(R.layout.fragment_detail, container, false);
 
             Intent intent = getActivity().getIntent();
+            Movie movie = intent.getParcelableExtra(Movie.TAG);
 
             TextView textView = (TextView) view.findViewById(R.id.detail_title);
-            textView.setText(intent.getStringExtra(Movie.TMDB_RESULTS_TITLE));
+            textView.setText(movie.getTitle());
 
             textView = (TextView) view.findViewById(R.id.detail_releaseDate);
-            textView.setText(intent.getStringExtra(Movie.TMDB_RESULTS_RELEASE_DATE).substring(0, 4));
+            textView.setText(movie.getRelease_date().substring(0, 4));
 
             textView = (TextView) view.findViewById(R.id.detail_voteAverage);
-            textView.setText(intent.getStringExtra(Movie.TMDB_RESULTS_VOTE_AVERAGE) + "/10");
+            textView.setText(movie.getVote_average() + "/10");
 
             textView = (TextView) view.findViewById(R.id.detail_overview);
-            textView.setText(intent.getStringExtra(Movie.TMDB_RESULTS_OVERVIEW));
+            textView.setText(movie.getOverview());
 
             ImageView imageView = (ImageView) view.findViewById(R.id.detail_posterPath);
             Picasso.with(getActivity())
-                    .load(URL_BASE + intent.getStringExtra(Movie.TMDB_RESULTS_POSTER_PATH))
+                    .load(URL_BASE + movie.getPoster_path())
                     .into(imageView);
 
             return view;

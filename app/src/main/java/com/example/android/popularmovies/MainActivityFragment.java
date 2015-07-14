@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -38,6 +39,8 @@ public class MainActivityFragment extends Fragment {
     private static int page = 1;
     private boolean fetchMoviesTaskRunning = false;
     private String lastSortOrder = null;
+    public static final String TAG = MainActivityFragment.class.getSimpleName();
+    private boolean restoredState = false;
 
     public MainActivityFragment() {
     }
@@ -77,17 +80,28 @@ public class MainActivityFragment extends Fragment {
                 Movie movie = movieGridViewAdapter.getItem(position);
 
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
-
-                intent.putExtra(Movie.TMDB_RESULTS_OVERVIEW, movie.getOverview());
-                intent.putExtra(Movie.TMDB_RESULTS_RELEASE_DATE, movie.getRelease_date());
-                intent.putExtra(Movie.TMDB_RESULTS_POSTER_PATH, movie.getPoster_path());
-                intent.putExtra(Movie.TMDB_RESULTS_TITLE, movie.getTitle());
-                intent.putExtra(Movie.TMDB_RESULTS_VOTE_AVERAGE, movie.getVote_average());
-
+                intent.putExtra(Movie.TAG, movie);
                 startActivity(intent);
 
             }
         });
+
+        if (savedInstanceState != null) {
+
+            Parcelable[] parcelables = savedInstanceState.getParcelableArray("movies");
+
+            if (parcelables != null) {
+
+                for (Parcelable parcelable : parcelables) {
+
+                    movieGridViewAdapter.add(((Movie) parcelable));
+
+                }
+
+                restoredState = true;
+
+            }
+        }
 
         return view;
     }
@@ -95,9 +109,12 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        populateGrid();
+        if (restoredState) {
+            restoredState = false;
+        } else {
+            populateGrid();
+        }
     }
-
 
     private void populateGrid() {
 
@@ -112,7 +129,7 @@ public class MainActivityFragment extends Fragment {
         if (lastSortOrder == null) {
             lastSortOrder = new String(sortOrder);
         } else if (!(lastSortOrder.contentEquals(sortOrder))) {
-            movieGridViewAdapter.clear();
+            page = 1;
             lastSortOrder = sortOrder;
         }
 
@@ -123,6 +140,28 @@ public class MainActivityFragment extends Fragment {
         new FetchMoviesTask().execute(taskParams);
 
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+
+        if (movieGridViewAdapter.getCount() > 0) {
+
+            Parcelable[] parcelables = new Parcelable[movieGridViewAdapter.getCount()];
+
+            for (int i = 0; i < movieGridViewAdapter.getCount(); i++) {
+
+                parcelables[i] = movieGridViewAdapter.getItem(i);
+
+            }
+
+            outState.putParcelableArray("movies", parcelables);
+        }
+
+        super.onSaveInstanceState(outState);
+
+    }
+
 
     private class FetchMoviesTask extends AsyncTask<String, Void, String> {
 
@@ -206,7 +245,12 @@ public class MainActivityFragment extends Fragment {
             if (jsonResponse.length() == 0) { return; }
 
             try {
+                // If we have just got page1++, list was either empty,
+                // or we have changed preference
+                if (page == 2) { movieGridViewAdapter.clear(); }
+
                 movieGridViewAdapter.addAll(parseJSON(jsonResponse));
+                movieGridViewAdapter.notifyDataSetChanged();
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "JSON Error :", e);
             }
@@ -232,4 +276,5 @@ public class MainActivityFragment extends Fragment {
         }
 
     }
+
 }
